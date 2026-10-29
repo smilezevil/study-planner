@@ -35,4 +35,19 @@
     color: var(--color-muted);
     font-size: 0.85rem;
   }
+
+  &__clear {
+    padding: 8px 14px;
+    border: 1px solid var(--color-danger);
+    border-radius: $radius-small;
+    background-color: transparent;
+    color: var(--color-danger);
+    font: inherit;
+    cursor: pointer;
+    transition: background-color $transition;
+
+    &:hover {
+      background-color: var(--color-danger-soft);
+    }
+  }
 }

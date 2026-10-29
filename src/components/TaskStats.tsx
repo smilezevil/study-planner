@@ -4,9 +4,10 @@ interface TaskStatsProps {
     total: number
     completed: number
     active: number
+    onClearCompleted: () => void
 }
 
-function TaskStats({ total, completed, active }: TaskStatsProps) {
+function TaskStats({ total, completed, active, onClearCompleted }: TaskStatsProps) {
     return (
         <section className="task-stats" aria-label="Статистика">
             <div className="task-stats__item">
@@ -21,6 +22,12 @@ function TaskStats({ total, completed, active }: TaskStatsProps) {
                 <span className="task-stats__value">{active}</span>
                 <span className="task-stats__label">Не виконано</span>
             </div>
+
+            {completed > 0 && (
+                <button type="button" className="task-stats__clear" onClick={onClearCompleted}>
+                    Очистити виконані
+                </button>
+            )}
         </section>
     )
 }

@@ -4,9 +4,11 @@ import './TaskItem.scss'
 
 interface TaskItemProps {
     task: Task
+    onToggle: (id: number) => void
+    onDelete: (id: number) => void
 }
 
-function TaskItem({ task }: TaskItemProps) {
+function TaskItem({ task, onToggle, onDelete }: TaskItemProps) {
     return (
         <li className={`task-item ${task.completed ? 'task-item--completed' : ''}`}>
             <div className="task-item__content">
@@ -22,6 +24,23 @@ function TaskItem({ task }: TaskItemProps) {
             {task.completed ? '✓ Виконано' : 'Не виконано'}
           </span>
                 </div>
+            </div>
+
+            <div className="task-item__actions">
+                <button
+                    type="button"
+                    className="task-item__button task-item__button--toggle"
+                    onClick={() => onToggle(task.id)}
+                >
+                    {task.completed ? 'Повернути' : 'Виконати'}
+                </button>
+                <button
+                    type="button"
+                    className="task-item__button task-item__button--delete"
+                    onClick={() => onDelete(task.id)}
+                >
+                    Видалити
+                </button>
             </div>
         </li>
     )

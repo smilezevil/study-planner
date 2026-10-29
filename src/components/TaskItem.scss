@@ -1,0 +1,132 @@
+@use '../styles/variables' as *;
+
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $gap;
+  padding: $gap;
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-primary);
+  border-radius: $radius;
+  background-color: var(--color-surface);
+  transition:
+          opacity $transition,
+          border-color $transition;
+
+  &--completed {
+    border-left-color: var(--color-success);
+    opacity: 0.7;
+  }
+
+  &__content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.05rem;
+    word-break: break-word;
+  }
+
+  &--completed &__title {
+    text-decoration: line-through;
+  }
+
+  &__description {
+    margin: 4px 0 0;
+    color: var(--color-muted);
+    word-break: break-word;
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $gap-small;
+    margin-top: 10px;
+  }
+
+  &__badge {
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+
+    &--category {
+      background-color: var(--color-primary-soft);
+      color: var(--color-primary);
+    }
+
+    &--low {
+      background-color: var(--color-success-soft);
+      color: var(--color-success);
+    }
+
+    &--medium {
+      background-color: var(--color-warning-soft);
+      color: var(--color-warning);
+    }
+
+    &--high {
+      background-color: var(--color-danger-soft);
+      color: var(--color-danger);
+    }
+  }
+
+  &__status {
+    color: var(--color-muted);
+    font-size: 0.85rem;
+  }
+
+  &--completed &__status {
+    color: var(--color-success);
+    font-weight: 600;
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: $gap-small;
+  }
+
+  &__button {
+    padding: 6px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: $radius-small;
+    background-color: transparent;
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+            background-color $transition,
+            border-color $transition,
+            color $transition;
+
+    &--toggle:hover {
+      border-color: var(--color-success);
+      background-color: var(--color-success-soft);
+      color: var(--color-success);
+    }
+
+    &--delete {
+      color: var(--color-danger);
+
+      &:hover {
+        border-color: var(--color-danger);
+        background-color: var(--color-danger-soft);
+      }
+    }
+  }
+
+  @media (max-width: $breakpoint-mobile) {
+    flex-direction: column;
+
+    &__actions {
+      flex-direction: row;
+    }
+  }
+}

@@ -1,0 +1,28 @@
+@use '../styles/variables' as *;
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  &__empty {
+    padding: 32px $gap;
+    border: 1px dashed var(--color-border);
+    border-radius: $radius;
+    color: var(--color-muted);
+    text-align: center;
+  }
+
+  &__empty-title {
+    margin: 0;
+    color: var(--color-text);
+    font-weight: 600;
+  }
+
+  &__empty-text {
+    margin: 4px 0 0;
+  }
+}

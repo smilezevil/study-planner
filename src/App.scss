@@ -1,0 +1,48 @@
+@use './styles/variables' as *;
+
+.app {
+  --color-bg: #f3f5fa;
+  --color-surface: #ffffff;
+  --color-border: #e1e5ee;
+  --color-text: #1f2430;
+  --color-muted: #6b7385;
+  --color-primary: #3b6cf6;
+  --color-primary-soft: #e8eefe;
+  --color-on-primary: #ffffff;
+  --color-success: #1f9d55;
+  --color-success-soft: #e4f6ec;
+  --color-danger: #d64545;
+  --color-danger-soft: #fdeaea;
+  --color-warning: #c98a04;
+  --color-warning-soft: #fdf3dc;
+
+  min-height: 100vh;
+  padding: 40px $gap;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition: background-color $transition;
+
+  &__container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  &__panel {
+    padding: 20px;
+    border: 1px solid var(--color-border);
+    border-radius: $radius;
+    background-color: var(--color-surface);
+  }
+
+  &__panel-title {
+    margin: 0 0 $gap;
+    font-size: 1.1rem;
+  }
+
+  @media (max-width: $breakpoint-mobile) {
+    padding: 20px 12px;
+  }
+}

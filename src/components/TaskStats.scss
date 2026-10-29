@@ -1,0 +1,38 @@
+@use '../styles/variables' as *;
+
+.task-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+
+  &__item {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 120px;
+    padding: 12px $gap;
+    border: 1px solid var(--color-border);
+    border-radius: $radius;
+    background-color: var(--color-surface);
+
+    &--completed {
+      border-top: 3px solid var(--color-success);
+    }
+
+    &--active {
+      border-top: 3px solid var(--color-warning);
+    }
+  }
+
+  &__value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  &__label {
+    color: var(--color-muted);
+    font-size: 0.85rem;
+  }
+}

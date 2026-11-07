@@ -1,0 +1,1 @@
+export const UNDO_DELAY_MS = 5000

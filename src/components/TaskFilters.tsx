@@ -1,28 +1,21 @@
+import { useTaskContext } from '../hooks/useTaskContext'
 import type { TaskFilter } from '../types/task'
 import { FILTER_LABELS } from '../utils/tasks'
 import './TaskFilters.scss'
 
-interface TaskFiltersProps {
-    filter: TaskFilter
-    counts: Record<TaskFilter, number>
-    search: string
-    sortByPriority: boolean
-    onFilterChange: (filter: TaskFilter) => void
-    onSearchChange: (value: string) => void
-    onSortChange: (value: boolean) => void
-}
-
 const FILTERS: TaskFilter[] = ['all', 'completed', 'active']
 
-function TaskFilters({
-                         filter,
-                         counts,
-                         search,
-                         sortByPriority,
-                         onFilterChange,
-                         onSearchChange,
-                         onSortChange,
-                     }: TaskFiltersProps) {
+function TaskFilters() {
+    const {
+        filter,
+        setFilter,
+        counts,
+        search,
+        setSearch,
+        isSortedByPriority,
+        setIsSortedByPriority,
+    } = useTaskContext()
+
     return (
         <div className="task-filters">
             <div className="task-filters__buttons" role="group" aria-label="Фільтр завдань">
@@ -32,7 +25,7 @@ function TaskFilters({
                         type="button"
                         className={`task-filters__button ${filter === value ? 'task-filters__button--active' : ''}`}
                         aria-pressed={filter === value}
-                        onClick={() => onFilterChange(value)}
+                        onClick={() => setFilter(value)}
                     >
                         {FILTER_LABELS[value]}
                         <span className="task-filters__count">{counts[value]}</span>
@@ -45,15 +38,15 @@ function TaskFilters({
                     type="search"
                     className="task-filters__search"
                     value={search}
-                    onChange={(event) => onSearchChange(event.target.value)}
+                    onChange={(event) => setSearch(event.target.value)}
                     placeholder="Пошук за назвою..."
                     aria-label="Пошук за назвою"
                 />
                 <label className="task-filters__sort">
                     <input
                         type="checkbox"
-                        checked={sortByPriority}
-                        onChange={(event) => onSortChange(event.target.checked)}
+                        checked={isSortedByPriority}
+                        onChange={(event) => setIsSortedByPriority(event.target.checked)}
                     />
                     Спочатку важливі
                 </label>

@@ -1,16 +1,23 @@
+import { useTaskContext } from '../hooks/useTaskContext'
 import type { Task } from '../types/task'
 import { PRIORITY_LABELS } from '../utils/tasks'
 import './TaskItem.scss'
 
 interface TaskItemProps {
     task: Task
-    onToggle: (id: number) => void
-    onDelete: (id: number) => void
+    isPending: boolean
 }
 
-function TaskItem({ task, onToggle, onDelete }: TaskItemProps) {
+function TaskItem({ task, isPending }: TaskItemProps) {
+    const { toggleTask, requestDelete } = useTaskContext()
+
+    const modifiers = [
+        task.completed ? 'task-item--completed' : '',
+        isPending ? 'task-item--pending' : '',
+    ].join(' ')
+
     return (
-        <li className={`task-item ${task.completed ? 'task-item--completed' : ''}`}>
+        <li className={`task-item ${modifiers}`}>
             <div className="task-item__content">
                 <h3 className="task-item__title">{task.title}</h3>
                 {task.description && <p className="task-item__description">{task.description}</p>}
@@ -21,7 +28,7 @@ function TaskItem({ task, onToggle, onDelete }: TaskItemProps) {
             {PRIORITY_LABELS[task.priority]}
           </span>
                     <span className="task-item__status">
-            {task.completed ? '✓ Виконано' : 'Не виконано'}
+            {isPending ? 'Буде видалено' : task.completed ? '✓ Виконано' : 'Не виконано'}
           </span>
                 </div>
             </div>
@@ -30,14 +37,16 @@ function TaskItem({ task, onToggle, onDelete }: TaskItemProps) {
                 <button
                     type="button"
                     className="task-item__button task-item__button--toggle"
-                    onClick={() => onToggle(task.id)}
+                    onClick={() => toggleTask(task.id)}
+                    disabled={isPending}
                 >
                     {task.completed ? 'Повернути' : 'Виконати'}
                 </button>
                 <button
                     type="button"
                     className="task-item__button task-item__button--delete"
-                    onClick={() => onDelete(task.id)}
+                    onClick={() => requestDelete(task.id)}
+                    disabled={isPending}
                 >
                     Видалити
                 </button>

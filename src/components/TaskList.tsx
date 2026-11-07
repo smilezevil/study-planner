@@ -1,16 +1,12 @@
-import type { Task } from '../types/task'
+import { useTaskContext } from '../hooks/useTaskContext'
+import { getVisibleTasks } from '../utils/tasks'
 import TaskItem from './TaskItem'
 import './TaskList.scss'
 
-interface TaskListProps {
-    tasks: Task[]
-    hasTasks: boolean
-    onToggle: (id: number) => void
-    onDelete: (id: number) => void
-}
+function TaskList() {
+    const { tasks, filter, search, isSortedByPriority, pendingDeletion } = useTaskContext()
 
-function TaskList({ tasks, hasTasks, onToggle, onDelete }: TaskListProps) {
-    if (!hasTasks) {
+    if (tasks.length === 0) {
         return (
             <div className="task-list__empty">
                 <p className="task-list__empty-title">Завдань поки немає.</p>
@@ -19,7 +15,9 @@ function TaskList({ tasks, hasTasks, onToggle, onDelete }: TaskListProps) {
         )
     }
 
-    if (tasks.length === 0) {
+    const visibleTasks = getVisibleTasks(tasks, filter, search, isSortedByPriority)
+
+    if (visibleTasks.length === 0) {
         return (
             <div className="task-list__empty">
                 <p className="task-list__empty-title">За цим фільтром завдань немає.</p>
@@ -29,8 +27,12 @@ function TaskList({ tasks, hasTasks, onToggle, onDelete }: TaskListProps) {
 
     return (
         <ul className="task-list">
-            {tasks.map((task) => (
-                <TaskItem key={task.id} task={task} onToggle={onToggle} onDelete={onDelete} />
+            {visibleTasks.map((task) => (
+                <TaskItem
+                    key={task.id}
+                    task={task}
+                    isPending={pendingDeletion?.ids.includes(task.id) ?? false}
+                />
             ))}
         </ul>
     )

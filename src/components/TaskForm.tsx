@@ -1,17 +1,16 @@
 import { useId, useState } from 'react'
 import type { FormEvent } from 'react'
-import type { NewTask, TaskPriority } from '../types/task'
+import { useTaskContext } from '../hooks/useTaskContext'
+import type { TaskPriority } from '../types/task'
 import { PRIORITY_LABELS } from '../utils/tasks'
 import './TaskForm.scss'
-
-interface TaskFormProps {
-    onAdd: (task: NewTask) => void
-}
 
 const DEFAULT_CATEGORY = 'Загальне'
 const PRIORITIES: TaskPriority[] = ['low', 'medium', 'high']
 
-function TaskForm({ onAdd }: TaskFormProps) {
+function TaskForm() {
+    const { addTask } = useTaskContext()
+
     const [title, setTitle] = useState('')
     const [description, setDescription] = useState('')
     const [category, setCategory] = useState('')
@@ -29,7 +28,7 @@ function TaskForm({ onAdd }: TaskFormProps) {
             return
         }
 
-        onAdd({
+        addTask({
             title: trimmedTitle,
             description: description.trim(),
             category: category.trim() || DEFAULT_CATEGORY,

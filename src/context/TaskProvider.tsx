@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from 'react'
 import type { ReactNode } from 'react'
 import { TOAST_DURATION_MS, UNDO_DELAY_MS } from '../constants'
-import { initialTasks } from '../data/initialTasks'
+import { useLocalStorage } from '../hooks/useLocalStorage'
 import { createTaskState, taskReducer } from '../reducers/taskReducer'
 import type { NewTask, TaskFilter } from '../types/task'
 import type { ToastMessage, ToastVariant } from '../types/toast'
-import { getTaskCounts } from '../utils/tasks'
+import { loadTasks, saveTasks } from '../utils/storage'
+import { getTaskCounts, isTaskFilter } from '../utils/tasks'
 import { TaskContext } from './TaskContext'
 import type { TaskContextValue } from './TaskContext'
+
+const FILTER_STORAGE_KEY = 'study-planner:filter'
 
 interface TaskProviderProps {
     children: ReactNode
@@ -18,11 +21,16 @@ function createToast(message: string, variant: ToastVariant = 'success'): ToastM
 }
 
 export function TaskProvider({ children }: TaskProviderProps) {
-    const [state, dispatch] = useReducer(taskReducer, initialTasks, createTaskState)
-    const [filter, setFilter] = useState<TaskFilter>('all')
+    const [loaded] = useState(loadTasks)
+    const [state, dispatch] = useReducer(taskReducer, loaded.tasks, createTaskState)
+    const [filter, setFilter] = useLocalStorage<TaskFilter>(FILTER_STORAGE_KEY, 'all', isTaskFilter)
     const [search, setSearch] = useState('')
     const [isSortedByPriority, setIsSortedByPriority] = useState(false)
-    const [toast, setToast] = useState<ToastMessage | null>(null)
+    const [toast, setToast] = useState<ToastMessage | null>(() =>
+        loaded.isCorrupted
+            ? createToast('Збережені дані пошкоджені, завантажено початковий список', 'error')
+            : null,
+    )
 
     const { tasks, pendingDeletion } = state
     const counts = useMemo(() => getTaskCounts(tasks), [tasks])
@@ -32,6 +40,12 @@ export function TaskProvider({ children }: TaskProviderProps) {
     }, [])
 
     const dismissToast = useCallback(() => setToast(null), [])
+
+    useEffect(() => {
+        if (!saveTasks(tasks)) {
+            console.error('Не вдалося зберегти завдання в localStorage')
+        }
+    }, [tasks])
 
     useEffect(() => {
         if (!toast) {
@@ -107,7 +121,7 @@ export function TaskProvider({ children }: TaskProviderProps) {
         setFilter('all')
         setSearch('')
         showToast('Дані скинуто до початкових', 'info')
-    }, [showToast])
+    }, [setFilter, showToast])
 
     const value = useMemo<TaskContextValue>(
         () => ({
@@ -135,6 +149,7 @@ export function TaskProvider({ children }: TaskProviderProps) {
             counts,
             pendingDeletion,
             filter,
+            setFilter,
             search,
             isSortedByPriority,
             toast,

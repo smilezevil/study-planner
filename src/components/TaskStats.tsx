@@ -2,7 +2,7 @@ import { useTaskContext } from '../hooks/useTaskContext'
 import './TaskStats.scss'
 
 function TaskStats() {
-    const { counts, clearCompleted } = useTaskContext()
+    const { counts, clearCompleted, resetTasks } = useTaskContext()
 
     return (
         <section className="task-stats" aria-label="Статистика">
@@ -19,11 +19,20 @@ function TaskStats() {
                 <span className="task-stats__label">Не виконано</span>
             </div>
 
-            {counts.completed > 0 && (
-                <button type="button" className="task-stats__clear" onClick={clearCompleted}>
-                    Очистити виконані
+            <div className="task-stats__actions">
+                {counts.completed > 0 && (
+                    <button
+                        type="button"
+                        className="task-stats__button task-stats__button--danger"
+                        onClick={clearCompleted}
+                    >
+                        Очистити виконані
+                    </button>
+                )}
+                <button type="button" className="task-stats__button" onClick={resetTasks}>
+                    Скинути дані
                 </button>
-            )}
+            </div>
         </section>
     )
 }

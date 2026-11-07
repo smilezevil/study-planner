@@ -26,6 +26,11 @@
     opacity: 0.5;
   }
 
+  &--editing {
+    display: block;
+    border-left-color: var(--color-warning);
+  }
+
   &__content {
     flex: 1;
     min-width: 0;
@@ -127,6 +132,12 @@
       border-color: var(--color-success);
       background-color: var(--color-success-soft);
       color: var(--color-success);
+    }
+
+    &--edit:hover:not(:disabled) {
+      border-color: var(--color-primary);
+      background-color: var(--color-primary-soft);
+      color: var(--color-primary);
     }
 
     &--delete {

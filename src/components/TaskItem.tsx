@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { useTaskContext } from '../hooks/useTaskContext'
 import type { Task } from '../types/task'
 import { PRIORITY_LABELS } from '../utils/tasks'
+import TaskForm from './TaskForm'
 import './TaskItem.scss'
 
 interface TaskItemProps {
@@ -10,6 +12,15 @@ interface TaskItemProps {
 
 function TaskItem({ task, isPending }: TaskItemProps) {
     const { toggleTask, requestDelete } = useTaskContext()
+    const [isEditing, setIsEditing] = useState(false)
+
+    if (isEditing && !isPending) {
+        return (
+            <li className="task-item task-item--editing">
+                <TaskForm task={task} onDone={() => setIsEditing(false)} />
+            </li>
+        )
+    }
 
     const modifiers = [
         task.completed ? 'task-item--completed' : '',
@@ -41,6 +52,14 @@ function TaskItem({ task, isPending }: TaskItemProps) {
                     disabled={isPending}
                 >
                     {task.completed ? 'Повернути' : 'Виконати'}
+                </button>
+                <button
+                    type="button"
+                    className="task-item__button task-item__button--edit"
+                    onClick={() => setIsEditing(true)}
+                    disabled={isPending}
+                >
+                    Редагувати
                 </button>
                 <button
                     type="button"

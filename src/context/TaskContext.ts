@@ -1,6 +1,7 @@
 import { createContext } from 'react'
 import type { PendingDeletion } from '../reducers/taskReducer'
 import type { NewTask, Task, TaskCounts, TaskFilter } from '../types/task'
+import type { ToastMessage } from '../types/toast'
 
 export interface TaskContextValue {
     tasks: Task[]
@@ -12,6 +13,8 @@ export interface TaskContextValue {
     setSearch: (value: string) => void
     isSortedByPriority: boolean
     setIsSortedByPriority: (value: boolean) => void
+    toast: ToastMessage | null
+    dismissToast: () => void
     addTask: (task: NewTask) => void
     updateTask: (id: number, changes: NewTask) => void
     toggleTask: (id: number) => void

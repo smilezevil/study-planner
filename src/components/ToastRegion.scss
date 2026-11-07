@@ -1,0 +1,18 @@
+@use '../styles/variables' as *;
+
+.toast-region {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(380px, calc(100vw - 24px));
+  pointer-events: none;
+
+  @media (max-width: $breakpoint-mobile) {
+    right: 12px;
+    bottom: 12px;
+  }
+}

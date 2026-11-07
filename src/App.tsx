@@ -4,6 +4,7 @@ import TaskForm from './components/TaskForm'
 import TaskStats from './components/TaskStats'
 import TaskFilters from './components/TaskFilters'
 import TaskList from './components/TaskList'
+import ToastRegion from './components/ToastRegion'
 import './App.scss'
 
 function App() {
@@ -23,6 +24,8 @@ function App() {
                 <TaskFilters />
                 <TaskList />
             </div>
+
+            <ToastRegion />
         </div>
     )
 }

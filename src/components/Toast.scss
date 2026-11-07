@@ -1,0 +1,114 @@
+@use '../styles/variables' as *;
+
+.toast {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px 16px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-primary);
+  border-radius: $radius;
+  background-color: var(--color-surface);
+  box-shadow: 0 8px 24px rgba(15, 21, 40, 0.15);
+  color: var(--color-text);
+  pointer-events: auto;
+  animation: toast-appear 0.2s ease-out;
+
+  &--success {
+    border-left-color: var(--color-success);
+  }
+
+  &--error {
+    border-left-color: var(--color-danger);
+  }
+
+  &--info {
+    border-left-color: var(--color-primary);
+  }
+
+  &--warning {
+    border-left-color: var(--color-warning);
+  }
+
+  &__message {
+    flex: 1;
+    margin: 0;
+    font-size: 0.95rem;
+  }
+
+  &__action {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    border: 1px solid var(--color-primary);
+    border-radius: $radius-small;
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  &__close {
+    flex-shrink: 0;
+    padding: 0 4px;
+    border: none;
+    background: none;
+    color: var(--color-muted);
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--color-text);
+    }
+  }
+
+  &__progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background-color: var(--color-primary);
+    transform-origin: left;
+    animation: toast-progress linear forwards;
+  }
+
+  &--success &__progress {
+    background-color: var(--color-success);
+  }
+
+  &--error &__progress {
+    background-color: var(--color-danger);
+  }
+
+  &--warning &__progress {
+    background-color: var(--color-warning);
+  }
+}
+
+@keyframes toast-progress {
+  from {
+    transform: scaleX(1);
+  }
+
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes toast-appear {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

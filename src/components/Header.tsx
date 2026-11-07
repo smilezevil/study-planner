@@ -1,11 +1,10 @@
+import { useTheme } from '../hooks/useTheme'
 import './Header.scss'
 
-interface HeaderProps {
-    isDark: boolean
-    onToggleTheme: () => void
-}
+function Header() {
+    const { theme, toggleTheme } = useTheme()
+    const isDark = theme === 'dark'
 
-function Header({ isDark, onToggleTheme }: HeaderProps) {
     return (
         <header className="header">
             <div>
@@ -16,7 +15,7 @@ function Header({ isDark, onToggleTheme }: HeaderProps) {
             <button
                 type="button"
                 className="header__theme-button"
-                onClick={onToggleTheme}
+                onClick={toggleTheme}
                 aria-label={isDark ? 'Увімкнути світлу тему' : 'Увімкнути темну тему'}
             >
                 {isDark ? '☀️ Світла' : '🌙 Темна'}

@@ -6,15 +6,7 @@ import './TaskFilters.scss'
 const FILTERS: TaskFilter[] = ['all', 'completed', 'active']
 
 function TaskFilters() {
-    const {
-        filter,
-        setFilter,
-        counts,
-        search,
-        setSearch,
-        isSortedByPriority,
-        setIsSortedByPriority,
-    } = useTaskContext()
+    const { filter, setFilter, counts } = useTaskContext()
 
     return (
         <div className="task-filters">
@@ -31,25 +23,6 @@ function TaskFilters() {
                         <span className="task-filters__count">{counts[value]}</span>
                     </button>
                 ))}
-            </div>
-
-            <div className="task-filters__tools">
-                <input
-                    type="search"
-                    className="task-filters__search"
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                    placeholder="Пошук за назвою..."
-                    aria-label="Пошук за назвою"
-                />
-                <label className="task-filters__sort">
-                    <input
-                        type="checkbox"
-                        checked={isSortedByPriority}
-                        onChange={(event) => setIsSortedByPriority(event.target.checked)}
-                    />
-                    Спочатку важливі
-                </label>
             </div>
         </div>
     )

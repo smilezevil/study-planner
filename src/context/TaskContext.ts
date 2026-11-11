@@ -1,27 +1,29 @@
 import { createContext } from 'react'
-import type { PendingDeletion } from '../reducers/taskReducer'
+import type { LoadStatus } from '../reducers/taskReducer'
 import type { NewTask, Task, TaskCounts, TaskFilter } from '../types/task'
 import type { ToastMessage } from '../types/toast'
 
 export interface TaskContextValue {
     tasks: Task[]
+    total: number
+    status: LoadStatus
+    error: string | null
     counts: TaskCounts
-    pendingDeletion: PendingDeletion | null
+    page: number
+    totalPages: number
+    goToPage: (page: number) => void
+    retry: () => void
     filter: TaskFilter
     setFilter: (filter: TaskFilter) => void
-    search: string
-    setSearch: (value: string) => void
-    isSortedByPriority: boolean
-    setIsSortedByPriority: (value: boolean) => void
+    selectedTaskId: number | null
+    openDetails: (id: number) => void
+    closeDetails: () => void
     toast: ToastMessage | null
     dismissToast: () => void
-    addTask: (task: NewTask) => void
-    updateTask: (id: number, changes: NewTask) => void
-    toggleTask: (id: number) => void
-    requestDelete: (id: number) => void
-    undoDelete: () => void
-    clearCompleted: () => void
-    resetTasks: () => void
+    createTask: (task: NewTask) => Promise<boolean>
+    updateTask: (id: number, changes: NewTask) => Promise<boolean>
+    toggleTask: (id: number) => Promise<void>
+    deleteTask: (id: number) => Promise<boolean>
 }
 
 export const TaskContext = createContext<TaskContextValue | null>(null)

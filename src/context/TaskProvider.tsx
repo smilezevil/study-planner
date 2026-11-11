@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from 'react'
 import type { ReactNode } from 'react'
-import { TOAST_DURATION_MS, UNDO_DELAY_MS } from '../constants'
+import { getErrorMessage, isAbortError } from '../api/errors'
+import { PAGE_SIZE, TOAST_DURATION_MS } from '../constants'
 import { useLocalStorage } from '../hooks/useLocalStorage'
-import { createTaskState, taskReducer } from '../reducers/taskReducer'
+import { initialTaskListState, taskReducer } from '../reducers/taskReducer'
+import { taskRepository } from '../repositories/taskRepository'
 import type { NewTask, TaskFilter } from '../types/task'
 import type { ToastMessage, ToastVariant } from '../types/toast'
-import { loadTasks, saveTasks } from '../utils/storage'
 import { getTaskCounts, isTaskFilter } from '../utils/tasks'
 import { TaskContext } from './TaskContext'
 import type { TaskContextValue } from './TaskContext'
@@ -21,31 +22,22 @@ function createToast(message: string, variant: ToastVariant = 'success'): ToastM
 }
 
 export function TaskProvider({ children }: TaskProviderProps) {
-    const [loaded] = useState(loadTasks)
-    const [state, dispatch] = useReducer(taskReducer, loaded.tasks, createTaskState)
+    const [state, dispatch] = useReducer(taskReducer, initialTaskListState)
+    const [page, setPage] = useState(1)
+    const [reloadKey, setReloadKey] = useState(0)
     const [filter, setFilter] = useLocalStorage<TaskFilter>(FILTER_STORAGE_KEY, 'all', isTaskFilter)
-    const [search, setSearch] = useState('')
-    const [isSortedByPriority, setIsSortedByPriority] = useState(false)
-    const [toast, setToast] = useState<ToastMessage | null>(() =>
-        loaded.isCorrupted
-            ? createToast('Збережені дані пошкоджені, завантажено початковий список', 'error')
-            : null,
-    )
+    const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null)
+    const [toast, setToast] = useState<ToastMessage | null>(null)
 
-    const { tasks, pendingDeletion } = state
+    const { tasks, total, status, error } = state
     const counts = useMemo(() => getTaskCounts(tasks), [tasks])
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
     const showToast = useCallback((message: string, variant?: ToastVariant) => {
         setToast(createToast(message, variant))
     }, [])
 
     const dismissToast = useCallback(() => setToast(null), [])
-
-    useEffect(() => {
-        if (!saveTasks(tasks)) {
-            console.error('Не вдалося зберегти завдання в localStorage')
-        }
-    }, [tasks])
 
     useEffect(() => {
         if (!toast) {
@@ -57,110 +49,172 @@ export function TaskProvider({ children }: TaskProviderProps) {
     }, [toast])
 
     useEffect(() => {
-        if (!pendingDeletion) {
-            return
-        }
+        const controller = new AbortController()
 
-        const timerId = setTimeout(() => {
-            dispatch({ type: 'confirmDelete' })
-            showToast(
-                pendingDeletion.kind === 'completed'
-                    ? `Видалено виконаних завдань: ${pendingDeletion.ids.length}`
-                    : 'Завдання видалено',
-            )
-        }, UNDO_DELAY_MS)
+        taskRepository
+            .getAll(page, PAGE_SIZE, controller.signal)
+            .then((result) => dispatch({ type: 'loadSuccess', tasks: result.tasks, total: result.total }))
+            .catch((loadError: unknown) => {
+                if (isAbortError(loadError)) {
+                    return
+                }
 
-        return () => clearTimeout(timerId)
-    }, [pendingDeletion, showToast])
+                dispatch({ type: 'loadError', error: getErrorMessage(loadError) })
+            })
 
-    const addTask = useCallback(
-        (task: NewTask) => {
-            dispatch({ type: 'add', task })
-            showToast(`Завдання «${task.title}» додано`)
+        return () => controller.abort()
+    }, [page, reloadKey])
+
+    const goToPage = useCallback(
+        (nextPage: number) => {
+            if (nextPage === page || nextPage < 1 || nextPage > totalPages) {
+                return
+            }
+
+            dispatch({ type: 'loadStart' })
+            setPage(nextPage)
+        },
+        [page, totalPages],
+    )
+
+    const retry = useCallback(() => {
+        dispatch({ type: 'loadStart' })
+        setReloadKey((prev) => prev + 1)
+    }, [])
+
+    const openDetails = useCallback((id: number) => setSelectedTaskId(id), [])
+    const closeDetails = useCallback(() => setSelectedTaskId(null), [])
+
+    const createTask = useCallback(
+        async (newTask: NewTask) => {
+            try {
+                const created = await taskRepository.create(newTask)
+                dispatch({ type: 'added', task: { ...created, isLocal: true } })
+                showToast(`Завдання «${created.title}» створено`)
+                return true
+            } catch (createError) {
+                showToast(getErrorMessage(createError), 'error')
+                return false
+            }
         },
         [showToast],
     )
 
     const updateTask = useCallback(
-        (id: number, changes: NewTask) => {
-            if (pendingDeletion?.ids.includes(id)) {
-                showToast('Не можна редагувати завдання, яке буде видалено', 'error')
+        async (id: number, changes: NewTask) => {
+            const current = tasks.find((task) => task.id === id)
+            if (!current) {
+                return false
+            }
+
+            try {
+                if (!current.isLocal) {
+                    await taskRepository.update(id, { title: changes.title })
+                }
+
+                dispatch({ type: 'updated', task: { ...current, ...changes } })
+                showToast('Зміни збережено')
+                return true
+            } catch (updateError) {
+                showToast(getErrorMessage(updateError), 'error')
+                return false
+            }
+        },
+        [tasks, showToast],
+    )
+
+    const toggleTask = useCallback(
+        async (id: number) => {
+            const current = tasks.find((task) => task.id === id)
+            if (!current) {
                 return
             }
 
-            dispatch({ type: 'update', id, changes })
-            showToast('Зміни збережено')
+            const next = { ...current, completed: !current.completed }
+            dispatch({ type: 'updated', task: next })
+
+            if (current.isLocal) {
+                return
+            }
+
+            try {
+                await taskRepository.update(id, { completed: next.completed })
+            } catch (toggleError) {
+                dispatch({ type: 'updated', task: current })
+                showToast(`Не вдалося змінити стан: ${getErrorMessage(toggleError)}`, 'error')
+            }
         },
-        [pendingDeletion, showToast],
+        [tasks, showToast],
     )
 
-    const toggleTask = useCallback((id: number) => {
-        dispatch({ type: 'toggle', id })
-    }, [])
+    const deleteTask = useCallback(
+        async (id: number) => {
+            const current = tasks.find((task) => task.id === id)
+            if (!current) {
+                return false
+            }
 
-    const requestDelete = useCallback((id: number) => {
-        dispatch({ type: 'requestDelete', id })
-    }, [])
+            try {
+                if (!current.isLocal) {
+                    await taskRepository.delete(id)
+                }
 
-    const undoDelete = useCallback(() => {
-        dispatch({ type: 'undoDelete' })
-        showToast('Видалення скасовано', 'info')
-    }, [showToast])
-
-    const clearCompleted = useCallback(() => {
-        if (counts.completed === 0) {
-            showToast('Немає виконаних завдань', 'error')
-            return
-        }
-
-        dispatch({ type: 'clearCompleted' })
-    }, [counts.completed, showToast])
-
-    const resetTasks = useCallback(() => {
-        dispatch({ type: 'reset' })
-        setFilter('all')
-        setSearch('')
-        showToast('Дані скинуто до початкових', 'info')
-    }, [setFilter, showToast])
+                dispatch({ type: 'removed', id })
+                setSelectedTaskId((prev) => (prev === id ? null : prev))
+                showToast('Завдання видалено')
+                return true
+            } catch (deleteError) {
+                showToast(getErrorMessage(deleteError), 'error')
+                return false
+            }
+        },
+        [tasks, showToast],
+    )
 
     const value = useMemo<TaskContextValue>(
         () => ({
             tasks,
+            total,
+            status,
+            error,
             counts,
-            pendingDeletion,
+            page,
+            totalPages,
+            goToPage,
+            retry,
             filter,
             setFilter,
-            search,
-            setSearch,
-            isSortedByPriority,
-            setIsSortedByPriority,
+            selectedTaskId,
+            openDetails,
+            closeDetails,
             toast,
             dismissToast,
-            addTask,
+            createTask,
             updateTask,
             toggleTask,
-            requestDelete,
-            undoDelete,
-            clearCompleted,
-            resetTasks,
+            deleteTask,
         }),
         [
             tasks,
+            total,
+            status,
+            error,
             counts,
-            pendingDeletion,
+            page,
+            totalPages,
+            goToPage,
+            retry,
             filter,
             setFilter,
-            search,
-            isSortedByPriority,
+            selectedTaskId,
+            openDetails,
+            closeDetails,
             toast,
             dismissToast,
-            addTask,
+            createTask,
             updateTask,
             toggleTask,
-            requestDelete,
-            undoDelete,
-            clearCompleted,
-            resetTasks,
+            deleteTask,
         ],
     )
 

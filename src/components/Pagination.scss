@@ -1,0 +1,36 @@
+@use '../styles/variables' as *;
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $gap;
+
+  &__button {
+    padding: 8px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: $radius-small;
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+    cursor: pointer;
+    transition:
+            background-color $transition,
+            border-color $transition;
+
+    &:hover:not(:disabled) {
+      border-color: var(--color-primary);
+      background-color: var(--color-primary-soft);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  }
+
+  &__info {
+    color: var(--color-muted);
+    font-size: 0.9rem;
+  }
+}

@@ -7,14 +7,24 @@ import './TaskItem.scss'
 
 interface TaskItemProps {
     task: Task
-    isPending: boolean
 }
 
-function TaskItem({ task, isPending }: TaskItemProps) {
-    const { toggleTask, requestDelete } = useTaskContext()
+function TaskItem({ task }: TaskItemProps) {
+    const { toggleTask, deleteTask } = useTaskContext()
     const [isEditing, setIsEditing] = useState(false)
+    const [isConfirming, setIsConfirming] = useState(false)
+    const [isDeleting, setIsDeleting] = useState(false)
 
-    if (isEditing && !isPending) {
+    async function handleDelete() {
+        setIsDeleting(true)
+        const isDeleted = await deleteTask(task.id)
+        if (!isDeleted) {
+            setIsDeleting(false)
+            setIsConfirming(false)
+        }
+    }
+
+    if (isEditing) {
         return (
             <li className="task-item task-item--editing">
                 <TaskForm task={task} onDone={() => setIsEditing(false)} />
@@ -24,7 +34,7 @@ function TaskItem({ task, isPending }: TaskItemProps) {
 
     const modifiers = [
         task.completed ? 'task-item--completed' : '',
-        isPending ? 'task-item--pending' : '',
+        isDeleting ? 'task-item--pending' : '',
     ].join(' ')
 
     return (
@@ -39,37 +49,56 @@ function TaskItem({ task, isPending }: TaskItemProps) {
             {PRIORITY_LABELS[task.priority]}
           </span>
                     <span className="task-item__status">
-            {isPending ? 'Буде видалено' : task.completed ? '✓ Виконано' : 'Не виконано'}
+            {isDeleting ? 'Видалення...' : task.completed ? '✓ Виконано' : 'Не виконано'}
           </span>
                 </div>
             </div>
 
-            <div className="task-item__actions">
-                <button
-                    type="button"
-                    className="task-item__button task-item__button--toggle"
-                    onClick={() => toggleTask(task.id)}
-                    disabled={isPending}
-                >
-                    {task.completed ? 'Повернути' : 'Виконати'}
-                </button>
-                <button
-                    type="button"
-                    className="task-item__button task-item__button--edit"
-                    onClick={() => setIsEditing(true)}
-                    disabled={isPending}
-                >
-                    Редагувати
-                </button>
-                <button
-                    type="button"
-                    className="task-item__button task-item__button--delete"
-                    onClick={() => requestDelete(task.id)}
-                    disabled={isPending}
-                >
-                    Видалити
-                </button>
-            </div>
+            {isConfirming ? (
+                <div className="task-item__actions task-item__actions--confirm">
+                    <span className="task-item__confirm-text">Видалити завдання?</span>
+                    <button
+                        type="button"
+                        className="task-item__button task-item__button--delete"
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                    >
+                        Так, видалити
+                    </button>
+                    <button
+                        type="button"
+                        className="task-item__button"
+                        onClick={() => setIsConfirming(false)}
+                        disabled={isDeleting}
+                    >
+                        Ні
+                    </button>
+                </div>
+            ) : (
+                <div className="task-item__actions">
+                    <button
+                        type="button"
+                        className="task-item__button task-item__button--toggle"
+                        onClick={() => toggleTask(task.id)}
+                    >
+                        {task.completed ? 'Повернути' : 'Виконати'}
+                    </button>
+                    <button
+                        type="button"
+                        className="task-item__button task-item__button--edit"
+                        onClick={() => setIsEditing(true)}
+                    >
+                        Редагувати
+                    </button>
+                    <button
+                        type="button"
+                        className="task-item__button task-item__button--delete"
+                        onClick={() => setIsConfirming(true)}
+                    >
+                        Видалити
+                    </button>
+                </div>
+            )}
         </li>
     )
 }

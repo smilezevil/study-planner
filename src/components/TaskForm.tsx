@@ -14,7 +14,7 @@ const DEFAULT_CATEGORY = 'Загальне'
 const PRIORITIES: TaskPriority[] = ['low', 'medium', 'high']
 
 function TaskForm({ task, onDone }: TaskFormProps) {
-    const { addTask, updateTask } = useTaskContext()
+    const { createTask, updateTask } = useTaskContext()
     const isEditing = task !== undefined
 
     const [title, setTitle] = useState(task?.title ?? '')
@@ -22,10 +22,11 @@ function TaskForm({ task, onDone }: TaskFormProps) {
     const [category, setCategory] = useState(task?.category ?? '')
     const [priority, setPriority] = useState<TaskPriority>(task?.priority ?? 'medium')
     const [error, setError] = useState('')
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const id = useId()
 
-    function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault()
 
         const trimmedTitle = title.trim()
@@ -41,18 +42,26 @@ function TaskForm({ task, onDone }: TaskFormProps) {
             priority,
         }
 
+        setIsSubmitting(true)
+
         if (isEditing) {
-            updateTask(task.id, values)
-            onDone?.()
+            const isSaved = await updateTask(task.id, values)
+            setIsSubmitting(false)
+            if (isSaved) {
+                onDone?.()
+            }
             return
         }
 
-        addTask(values)
-        setTitle('')
-        setDescription('')
-        setCategory('')
-        setPriority('medium')
-        setError('')
+        const isCreated = await createTask(values)
+        setIsSubmitting(false)
+        if (isCreated) {
+            setTitle('')
+            setDescription('')
+            setCategory('')
+            setPriority('medium')
+            setError('')
+        }
     }
 
     return (
@@ -125,12 +134,17 @@ function TaskForm({ task, onDone }: TaskFormProps) {
 
             <div className="task-form__actions">
                 {isEditing && (
-                    <button type="button" className="task-form__cancel" onClick={onDone}>
+                    <button
+                        type="button"
+                        className="task-form__cancel"
+                        onClick={onDone}
+                        disabled={isSubmitting}
+                    >
                         Скасувати
                     </button>
                 )}
-                <button type="submit" className="task-form__submit">
-                    {isEditing ? 'Зберегти' : 'Додати'}
+                <button type="submit" className="task-form__submit" disabled={isSubmitting}>
+                    {isSubmitting ? 'Збереження...' : isEditing ? 'Зберегти' : 'Додати'}
                 </button>
             </div>
         </form>

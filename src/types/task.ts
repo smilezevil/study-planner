@@ -7,9 +7,10 @@ export interface Task {
     completed: boolean
     priority: TaskPriority
     category: string
+    isLocal?: boolean
 }
 
-export type NewTask = Omit<Task, 'id' | 'completed'>
+export type NewTask = Omit<Task, 'id' | 'completed' | 'isLocal'>
 
 export type TaskFilter = 'all' | 'completed' | 'active'
 

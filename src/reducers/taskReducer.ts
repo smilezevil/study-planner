@@ -1,93 +1,60 @@
-import { initialTasks } from '../data/initialTasks'
-import type { NewTask, Task } from '../types/task'
-import { getNextId } from '../utils/tasks'
+import type { Task } from '../types/task'
 
-export type DeletionKind = 'single' | 'completed'
+export type LoadStatus = 'loading' | 'success' | 'error'
 
-export interface PendingDeletion {
-    ids: number[]
-    kind: DeletionKind
-}
-
-export interface TaskState {
+export interface TaskListState {
     tasks: Task[]
-    pendingDeletion: PendingDeletion | null
+    total: number
+    status: LoadStatus
+    error: string | null
 }
 
-export type TaskAction =
-    | { type: 'add'; task: NewTask }
-    | { type: 'toggle'; id: number }
-    | { type: 'update'; id: number; changes: NewTask }
-    | { type: 'requestDelete'; id: number }
-    | { type: 'confirmDelete' }
-    | { type: 'undoDelete' }
-    | { type: 'clearCompleted' }
-    | { type: 'reset' }
+export type TaskListAction =
+    | { type: 'loadStart' }
+    | { type: 'loadSuccess'; tasks: Task[]; total: number }
+    | { type: 'loadError'; error: string }
+    | { type: 'added'; task: Task }
+    | { type: 'updated'; task: Task }
+    | { type: 'removed'; id: number }
 
-export function createTaskState(tasks: Task[]): TaskState {
-    return { tasks, pendingDeletion: null }
+export const initialTaskListState: TaskListState = {
+    tasks: [],
+    total: 0,
+    status: 'loading',
+    error: null,
 }
 
-function withoutPending(state: TaskState): Task[] {
-    const pending = state.pendingDeletion
-    if (!pending) {
-        return state.tasks
-    }
-
-    return state.tasks.filter((task) => !pending.ids.includes(task.id))
-}
-
-export function taskReducer(state: TaskState, action: TaskAction): TaskState {
+export function taskReducer(state: TaskListState, action: TaskListAction): TaskListState {
     switch (action.type) {
-        case 'add': {
-            const task: Task = { ...action.task, id: getNextId(state.tasks), completed: false }
-            return { ...state, tasks: [task, ...state.tasks] }
-        }
+        case 'loadStart':
+            return { ...state, status: 'loading', error: null }
 
-        case 'toggle':
+        case 'loadSuccess':
+            return { tasks: action.tasks, total: action.total, status: 'success', error: null }
+
+        case 'loadError':
+            return { tasks: [], total: 0, status: 'error', error: action.error }
+
+        case 'added': {
+            const id = state.tasks.reduce((maxId, task) => Math.max(maxId, task.id + 1), action.task.id)
             return {
                 ...state,
-                tasks: state.tasks.map((task) =>
-                    task.id === action.id ? { ...task, completed: !task.completed } : task,
-                ),
+                tasks: [{ ...action.task, id }, ...state.tasks],
+                total: state.total + 1,
             }
+        }
 
-        case 'update':
+        case 'updated':
             return {
                 ...state,
-                tasks: state.tasks.map((task) =>
-                    task.id === action.id ? { ...task, ...action.changes } : task,
-                ),
+                tasks: state.tasks.map((task) => (task.id === action.task.id ? action.task : task)),
             }
 
-        case 'requestDelete': {
-            if (state.pendingDeletion?.ids.includes(action.id)) {
-                return state
-            }
-
+        case 'removed':
             return {
-                tasks: withoutPending(state),
-                pendingDeletion: { ids: [action.id], kind: 'single' },
+                ...state,
+                tasks: state.tasks.filter((task) => task.id !== action.id),
+                total: Math.max(0, state.total - 1),
             }
-        }
-
-        case 'clearCompleted': {
-            const tasks = withoutPending(state)
-            const ids = tasks.filter((task) => task.completed).map((task) => task.id)
-
-            return {
-                tasks,
-                pendingDeletion: ids.length > 0 ? { ids, kind: 'completed' } : null,
-            }
-        }
-
-        case 'confirmDelete':
-            return { tasks: withoutPending(state), pendingDeletion: null }
-
-        case 'undoDelete':
-            return { ...state, pendingDeletion: null }
-
-        case 'reset':
-            return createTaskState(initialTasks)
     }
 }

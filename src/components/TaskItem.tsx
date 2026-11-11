@@ -10,7 +10,7 @@ interface TaskItemProps {
 }
 
 function TaskItem({ task }: TaskItemProps) {
-    const { toggleTask, deleteTask } = useTaskContext()
+    const { toggleTask, deleteTask, openDetails } = useTaskContext()
     const [isEditing, setIsEditing] = useState(false)
     const [isConfirming, setIsConfirming] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
@@ -82,6 +82,13 @@ function TaskItem({ task }: TaskItemProps) {
                         onClick={() => toggleTask(task.id)}
                     >
                         {task.completed ? 'Повернути' : 'Виконати'}
+                    </button>
+                    <button
+                        type="button"
+                        className="task-item__button task-item__button--edit"
+                        onClick={() => openDetails(task.id)}
+                    >
+                        Деталі
                     </button>
                     <button
                         type="button"

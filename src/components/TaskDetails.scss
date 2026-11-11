@@ -1,0 +1,95 @@
+@use '../styles/variables' as *;
+
+.task-details {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $gap;
+  background-color: rgb(0 0 0 / 45%);
+
+  &__dialog {
+    width: 100%;
+    max-width: 480px;
+    padding: 20px;
+    border: 1px solid var(--color-border);
+    border-radius: $radius;
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    box-shadow: 0 12px 40px rgb(0 0 0 / 25%);
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $gap;
+    margin-bottom: $gap;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.15rem;
+  }
+
+  &__close {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    background-color: transparent;
+    color: var(--color-text);
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--color-primary-soft);
+    }
+  }
+
+  &__state {
+    margin: 0;
+    padding: 20px 0;
+    color: var(--color-muted);
+    text-align: center;
+
+    p {
+      margin: 0 0 10px;
+    }
+
+    &--error {
+      color: var(--color-danger);
+    }
+  }
+
+  &__retry {
+    padding: 8px 18px;
+    border: none;
+    border-radius: $radius-small;
+    background-color: var(--color-danger);
+    color: #ffffff;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  &__list {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 10px $gap;
+    margin: 0;
+
+    dt {
+      color: var(--color-muted);
+      font-size: 0.9rem;
+    }
+
+    dd {
+      margin: 0;
+      word-break: break-word;
+    }
+  }
+}

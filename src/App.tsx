@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import Header from './components/Header'
 import Pagination from './components/Pagination'
+import TaskDetails from './components/TaskDetails'
 import TaskFilters from './components/TaskFilters'
 import TaskForm from './components/TaskForm'
 import TaskList from './components/TaskList'
@@ -12,7 +13,8 @@ import './App.scss'
 
 function App() {
     const { theme } = useTheme()
-    const { counts, status } = useTaskContext()
+    const { tasks, counts, status, selectedTaskId, closeDetails } = useTaskContext()
+    const selectedTask = tasks.find((task) => task.id === selectedTaskId)
 
     useEffect(() => {
         if (status !== 'success') {
@@ -39,6 +41,15 @@ function App() {
                 <TaskList />
                 <Pagination />
             </div>
+
+            {selectedTaskId !== null && (
+                <TaskDetails
+                    key={selectedTaskId}
+                    id={selectedTaskId}
+                    listTask={selectedTask}
+                    onClose={closeDetails}
+                />
+            )}
 
             <ToastRegion />
         </div>
